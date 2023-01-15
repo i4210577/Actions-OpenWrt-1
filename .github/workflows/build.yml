@@ -73,7 +73,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@main
 
-    - name: prinf info
+    - name: 原则信息
       id: set_matrix
       run: |
         [ -n "${{ github.event.inputs.branch }}" ] && real_branch=${{ github.event.inputs.branch }}
@@ -158,7 +158,7 @@ jobs:
     # - name: install docker
     #   uses: docker-practice/actions-setup-docker@master
       
-    - name: Login to Docker Hub
+    - name: 登录到 Docker Hub
       uses: docker/login-action@v2
       env:
         DOCKER_PASS: ${{ secrets.DOCKER_HUB_PASS  }}
@@ -177,7 +177,7 @@ jobs:
     #     username: "${{ github.repository_owner }}@qq.com"
     #     password: "${{ secrets.ALIUNCS_PASS }}"
 
-    - name: Initialization environment
+    - name: 初始化环境
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
@@ -237,7 +237,7 @@ jobs:
 
         echo "ACTION_NUM=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
-    - name: Clone source code
+    - name: 克隆源代码
       working-directory: /workdir
       run: |
         set -x
@@ -285,7 +285,7 @@ jobs:
         echo "repo_name=${{ matrix.repo.name }}" >> $GITHUB_ENV
         echo "repo_branch=${{ matrix.repo.branch }}" >> $GITHUB_ENV
 
-    - name: Load custom feeds
+    - name: 加载自定义提要
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
         if [ -f "$DIY_P1_SH" ];then
@@ -295,7 +295,7 @@ jobs:
           $GITHUB_WORKSPACE/$DIY_P1_SH
         fi
 
-    - name: Update feeds
+    - name: 更新提要
       if: env.UdateFeeds == 'true'
       run: |
         cd openwrt
@@ -313,11 +313,11 @@ jobs:
         ./scripts/feeds update -a
         
 
-    - name: Install feeds
+    - name: 安装提要
       if: env.InstallFeeds == 'true'
       run: cd openwrt && ./scripts/feeds install -a
 
-    - name: Load custom configuration
+    - name: 加载自定义配置
       id: load
       run: |
         
@@ -328,7 +328,7 @@ jobs:
           echo "::set-output name=status::true"
         fi
 
-    - name: Upload buildInfo
+    - name: 上传buildInfo
       uses: actions/upload-artifact@main
       if: '!cancelled()'
       with:
@@ -346,7 +346,7 @@ jobs:
           echo $JOB_NAME
           timeout 5 gh -R ${GITHUB_REPOSITORY} run watch ${{ github.run_id }} || true
 
-    - name: cat .config part1
+    - name: cat .config 第1部分
       run: |
         cd openwrt
         cat .config
@@ -358,7 +358,7 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
-    - name: Download package
+    - name: 下载包
       id: package
       run: |
         cd openwrt
@@ -386,7 +386,7 @@ jobs:
         fi
         ls -al ${BaseDir}
 
-    - name: cat .config before compile
+    - name: cat .config 编译前
       run: |
         cd openwrt
         # 看哪些被依赖开启的 luci-app-xxx=y，由于 common 开启的就不管，不在列表的话就需要看看是哪些依赖
@@ -394,7 +394,7 @@ jobs:
         echo '-----👇------'
         cat .config
 
-    - name: Compile the firmware
+    - name: 编译固件
       id: compile
       run: |
         ulimit -SHn 65000
@@ -490,7 +490,7 @@ jobs:
         echo "DEVICE_NAME=${{ matrix.target }}" >> $GITHUB_ENV
 
 
-    - name: retry with V=s in failed packages
+    - name: 在失败的包中使用 V=s 重试
       if: (!cancelled())
       run: |
         cd openwrt
@@ -508,7 +508,7 @@ jobs:
           fi
         fi
 
-    - name: Check space usage
+    - name: 检查空间使用情况
       if: (!cancelled())
       run: |
         df -hT
@@ -521,7 +521,7 @@ jobs:
           bash diy-after-compile.sh
         fi
 
-    - name: Check cache list
+    - name: 检查缓存列表
       if: (!cancelled())
       run: |
         cd openwrt/
@@ -531,14 +531,14 @@ jobs:
         ls -ahl build_dir/target-*/ staging_dir/target-* \
             staging_dir/packages || true
 
-    - name: Upload bin directory
+    - name: 上传bin目录
       uses: actions/upload-artifact@main
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
         name: OpenWrt_bin_${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: openwrt/bin
 
-    - name: Organize files
+    - name: 整理文件
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
@@ -571,7 +571,7 @@ jobs:
           echo "::set-output name=build_target::${{ matrix.target }}"
         fi
 
-    - name: Do something after Compile
+    - name: 编译后做一些事情
       if: steps.organize.outputs.status == 'success' && !cancelled()
       run: |
         cd openwrt
@@ -581,7 +581,7 @@ jobs:
           bash $GITHUB_WORKSPACE/$DIY_AFTER
         fi
 
-    - name: Upload firmware directory
+    - name: 上传固件目录
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with: # 上传固件
@@ -590,14 +590,14 @@ jobs:
           ${{ env.FIRMWARE }}
           !${{ env.FIRMWARE }}/openwrt-imagebuilder*
 
-    - name: Upload imagebuilder tar.xz
+    - name: 上传 imagebuilder tar.xz
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.uploadImageBuilder && !cancelled()
       with: # 上传 imageBuilder
         name: openwrt-imagebuilder-${{ env.DEVICE_NAME }}-${{ matrix.repo.name }}-${{ matrix.repo.branch }}
         path: ${{ env.FIRMWARE }}/*-imagebuilder*
 
-    - name: Upload firmware to cowtransfer
+    - name: 上传固件到 cowtransfer
       id: cowtransfer
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
       run: |
@@ -606,7 +606,7 @@ jobs:
         echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
         echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
 
-    - name: Upload firmware to WeTransfer
+    - name: 上传固件到 WeTransfer
       id: wetransfer
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
       run: |
@@ -615,7 +615,7 @@ jobs:
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
         echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
 
-    - name: Generate release tag
+    - name: 生成发布标签
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
@@ -625,7 +625,7 @@ jobs:
         [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
         echo "::set-output name=status::success"
 
-    - name: Upload firmware to release
+    - name: 上传固件发布
       uses: softprops/action-gh-release@v1
       if: steps.tag.outputs.status == 'success' && !cancelled()
       env:
@@ -635,7 +635,7 @@ jobs:
         body_path: release.txt
         files: ${{ env.FIRMWARE }}/*
 
-    - name: Clean space for upload cache
+    - name: 上传缓存的清理空间
       id: up_cache_before
       if: "!cancelled() && env.ClearPkg == 'true'"
       continue-on-error: true
@@ -667,7 +667,7 @@ jobs:
         df -i
         ' &
 
-    - name: Upload cache
+    - name: 上传缓存
       id: up_cache
       if: '!cancelled()'
       env:
@@ -749,14 +749,14 @@ jobs:
           fi
         fi
 
-    - name: Delete workflow runs
+    - name: 删除工作流程运行
       uses: GitRML/delete-workflow-runs@main
       continue-on-error: true
       with:
         retain_days: 5
         keep_minimum_runs: 7
 
-    - name: Remove old Releases
+    - name: 删除旧版本
       uses: dev-drprasad/delete-older-releases@v0.1.0
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
@@ -781,7 +781,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@main
 
-    # - name: install docker
+    # - name: 安装 docker
     #   uses: docker-practice/actions-setup-docker@master
       
     - name: prinf info
@@ -817,7 +817,7 @@ jobs:
           echo "suffix=-full" >> $GITHUB_ENV
         fi
 
-    - name: Initialization environment
+    - name: 初始化环境
       id: init
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -858,7 +858,7 @@ jobs:
         bash common/env.sh
         ls -al .
 
-    - name: Login to Docker Hub
+    - name: 登录到 Docker Hub
       uses: docker/login-action@v2
       env:
         DOCKER_PASS: ${{ secrets.DOCKER_HUB_PASS  }}
@@ -867,7 +867,7 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.DOCKER_HUB_PASS }}
 
-    - name: Login to registry.aliyuncs.com
+    - name: 登录到 registry.aliyuncs.com
       uses: aliyun/acr-login@v1
       env:
         DOCKER_PASS: ${{ secrets.ALIUNCS_PASS  }}
@@ -878,7 +878,7 @@ jobs:
         username: "${{ github.repository_owner }}@qq.com"
         password: "${{ secrets.ALIUNCS_PASS }}"
 
-    - name: Download imagebuilder (Artifact)
+    - name: 下载 imagebuilder（神器）
       uses: actions/download-artifact@v2
       with:
         name: openwrt-imagebuilder-${{ needs.build.outputs.build_target }}-${{ matrix.repo.name }}-${{ matrix.repo.branch }}
@@ -886,7 +886,7 @@ jobs:
         #name: ${{ needs.build.outputs.imageBuilder }}
         path: .
 
-    - name: Compile the firmware
+    - name: 编译固件
       id: compile
       run: |
         bash common/imageBuilder-run.sh compile
@@ -896,7 +896,7 @@ jobs:
       
         echo "FILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
-    - name: Organize files
+    - name: 整理文件
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
@@ -906,7 +906,7 @@ jobs:
         echo "FIRMWARE=$(readlink -f .)" >> $GITHUB_ENV
         echo "::set-output name=status::success"
 
-    - name: Do something after Compile
+    - name: 编译后做一些事情
       if: steps.organize.outputs.status == 'success' && !cancelled()
       run: |
         cd openwrt/
@@ -915,7 +915,7 @@ jobs:
           bash -x $GITHUB_WORKSPACE/$DIY_AFTER ${{ matrix.repo.name }}-${{ matrix.repo.branch }} ${{ env.suffix }} 
         fi
 
-    - name: Upload firmware directory
+    - name: 上传固件目录
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
@@ -923,7 +923,7 @@ jobs:
         path: |
           ${{ env.FIRMWARE }}
 
-    - name: Upload firmware to release
+    - name: 上传固件发布
       if: steps.init.outputs.gh == 'success' && !cancelled()
       run: |
         set -x
