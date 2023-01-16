@@ -15,11 +15,11 @@ on:
   workflow_dispatch:
     inputs:
       ssh:
-        description: 'SSH connection to Actions'
+        description: '与操作的 SSH 连接'
         required: false
         default: 'false'
       target:
-        description: 'build/${target} to build'
+        description: 'build/${target} 要构建'
         required: false
         default: 'r2s' #'x86_64'
       envOverride:
@@ -27,19 +27,19 @@ on:
         required: false
         default: ''
       repo_json:
-        description: 'json raw string about repo to use'
+        description: '关于要使用的存储库的 JSON 原始字符串'
         required: false
         default: ''
       config:
-        description: 'config file to build'
+        description: '要构建的配置文件'
         required: false
         default: 'config.buildinfo'
       os:
-        description: 'os to use, or self-hosted'
+        description: '要使用的操作系统或自托管'
         required: false
-        default: 'ubuntu-20.04'
+        default: 'ubuntu-22.04'
       branch:
-        description: 'used for repository_dispatch run'
+        description: '用于repository_dispatch运行'
         required: false
         default: ''
 
@@ -70,7 +70,7 @@ jobs:
     name: "set matrix for: ${{ github.event.inputs.target }}"
 
     steps:
-    - name: Checkout
+    - name: 准备结束
       uses: actions/checkout@main
 
     - name: 原则信息
@@ -111,10 +111,10 @@ jobs:
         repo: ${{ fromJson(needs.set_matrix.outputs.build_repo) }}
 
     steps:
-    - name: Checkout
+    - name: 准备结束
       uses: actions/checkout@main
 
-    - name: prinf machine info and matrix info
+    - name: prinf 机器信息和矩阵信息
       run: |
         real_branch=${GITHUB_REF##*/}
         if [ -n "${{ github.event.inputs.branch }}" ];then
@@ -328,7 +328,7 @@ jobs:
           echo "::set-output name=status::true"
         fi
 
-    - name: 上传buildInfo
+    - name: 上传构建信息
       uses: actions/upload-artifact@main
       if: '!cancelled()'
       with:
@@ -339,7 +339,7 @@ jobs:
           ${{ env.BaseDir }}/*.buildinfo
 
     # 这个name 用于后续判断，里面的 run 就随意写了
-    - name: gh-rerun-condition
+    - name: gh-重新运行条件
       continue-on-error: true
       if: steps.load.outputs.status == 'true'
       run: |
@@ -351,7 +351,7 @@ jobs:
         cd openwrt
         cat .config
 
-    - name: SSH connection to Actions
+    - name: 与操作的 SSH 连接
       uses: P3TERX/ssh2actions@v1.0.0
       if: (failure() && github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
       env:
@@ -778,13 +778,13 @@ jobs:
           - "full"
         repo: ${{ fromJson(needs.set_matrix.outputs.build_repo) }}
     steps:
-    - name: Checkout
+    - name: 准备结束
       uses: actions/checkout@main
 
     # - name: 安装 docker
     #   uses: docker-practice/actions-setup-docker@master
       
-    - name: prinf info
+    - name: prinf 信息
       run: |
         df -h
         lscpu
